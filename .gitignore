@@ -1,0 +1,37 @@
+# ----------------------------------------------------
+# 1. KEAMANAN & KREDENSIAL (Wajib Aman)
+# Mengabaikan file yang berisi semua secrets (SECRET_KEY, DB_PASSWORD, dll.)
+.env
+
+# ----------------------------------------------------
+# 2. VIRTUAL ENVIRONMENT & DEPENDENCIES
+# Mengabaikan folder environment Python
+venv/
+.venv/
+
+# File cache Python (dibuat saat runtime)
+*.pyc
+__pycache__/
+
+# ----------------------------------------------------
+# 3. FILE DATABASE & LOGS
+# File database lokal SQLite (DB production ada di Render)
+db.sqlite3
+
+# Log file
+*.log
+
+# ----------------------------------------------------
+# 4. DJANGO & ARTEFAK BUILD
+# Folder yang dibuat saat collectstatic (untuk deployment)
+/staticfiles/
+
+# ----------------------------------------------------
+# 5. IDE (INTEGRATED DEVELOPMENT ENVIRONMENT)
+# File konfigurasi PyCharm/VSCode
+.idea/
+.vscode/
+
+# MacOS & Windows specific files
+.DS_Store
+Thumbs.db

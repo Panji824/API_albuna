@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3ci!a0mh&1j(q)c1&*#ihe7m6-(+d7y*c1o8!%-%)@zxwjm+!7'
+SECRET_KEY = config('SECRET KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -83,11 +85,12 @@ WSGI_APPLICATION = 'API_albuna.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'albuna_db',
-        'USER': 'postgres',        # Pastikan ini huruf BESAR di Django
-        'PASSWORD': 'Pharen012',   # Password yang Anda kirimkan
-        'HOST': 'localhost',
-        'PORT': '5432'
+        # Panggil dari .env
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT')
     }
 }
 if os.environ.get('DATABASE_URL'):
