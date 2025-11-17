@@ -20,9 +20,9 @@ if DEBUG:
 else:
     # Production: Hapus Ngrok dan hanya izinkan domain production
     ALLOWED_HOSTS = [
-        '.up.railway.app',  # Domain Railway
-        '.albuna-hijab.vercel.app', # Domain Vercel Frontend
-        '.render.com', # Jika masih menggunakan Render untuk services lain
+        '.up.railway.app',
+        '.albuna-hijab.vercel.app',
+        'healthcheck.railway.app'
     ]
     # Wajib untuk Nginx/Proxy SSL di Railway
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
