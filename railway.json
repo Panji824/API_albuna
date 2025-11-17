@@ -5,7 +5,7 @@
     "buildCommand": "sh ./build.sh"
   },
   "deploy": {
-    "startCommand": "web: gunicorn API_albuna.wsgi --bind 0.0.0.0:$PORT --log-file -",
+    "startCommand": "gunicorn API_albuna.wsgi --bind 0.0.0.0:$PORT --log-file -",
     "healthcheckPath": "/admin/"
   }
 }
