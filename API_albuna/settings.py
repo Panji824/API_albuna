@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # --- HOSTS & CORS (FIXED FOR NGROK/REACT) ---
 if DEBUG:
@@ -18,12 +18,13 @@ if DEBUG:
     ALLOWED_HOSTS = ['*', '127.0.0.1', 'localhost']
 else:
     # HANYA HOST YANG DIİZINKAN DI PRODUCTION
-    ALLOWED_HOSTS = ['.render.com', 'unsolitary-joni-spleenish.ngrok-free.dev']
+    ALLOWED_HOSTS = ['.render.com', 'unsolitary-joni-spleenish.ngrok-free.dev', ".up.railway.app"]
 
 # Izinkan React dan Ngrok sebagai Origin
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://*.up.railway.app",
     "https://albuna-hijab.vercel.app",
     "https://unsolitary-joni-spleenish.ngrok-free.dev",
 ]
@@ -35,12 +36,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
 
     # API & CORS
     'rest_framework',
     'corsheaders',
     'product_catalog.apps.ProductCatalogConfig',
 ]
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -102,12 +112,31 @@ if os.environ.get('DATABASE_URL'):
 
 # --- DRF PERMISSIONS FIX ---
 REST_FRAMEWORK = {
+    # Keep your existing permission settings
     'DEFAULT_PERMISSION_CLASSES': [
-        # Izinkan siapa saja melihat data (GET), tapi memerlukan autentikasi
-        # untuk mengubah data (POST, PUT, DELETE). Ini mengatasi konflik sesi admin.
         'rest_framework.permissions.IsAuthenticatedOrReadOnly'
-    ]
+    ],
+    # ADD THIS BLOCK: Use token/basic auth and remove session authentication
+    # which is what triggers the default CSRF check for API endpoints.
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # For testing/stateless API: use token auth
+        # 'rest_framework.authentication.TokenAuthentication',
+
+        # OR, keep session only if you need admin UI login, but make sure
+        # to exclude it from views called by React.
+        # A common strategy is to only use Basic or Token for the API:
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    # Ensure all views that are NOT meant for the Admin UI do not require CSRF.
+    # This is usually done by using the @api_view decorator which defaults to
+    # using the settings above.
 }
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.dev', # Wildcard for all ngrok tunnels
+    'https://unsolitary-joni-spleenish.ngrok-free.dev',
+    'https://albuna-hijab.vercel.app',
+    # Add your render.com domain if it also posts to the API
+]
 # --- END DRF FIX ---
 AUTH_PASSWORD_VALIDATORS = [
     # ... (password validators)

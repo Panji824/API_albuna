@@ -20,9 +20,12 @@ class Product(models.Model):
     ]
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="Kategori")
 
-    # Field URL untuk Gambar
-    image_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="URL Gambar")
-
+    image = models.ImageField(
+        upload_to='products/',
+        blank=True,
+        null=True,
+        verbose_name="Gambar Produk"
+    )
     # Status dan Tag
     is_new_arrival = models.BooleanField(default=False, verbose_name="Produk Baru?")
     tag = models.CharField(max_length=50, blank=True, null=True, verbose_name="Tag (Contoh: Sale, Best Seller)")
