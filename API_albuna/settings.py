@@ -7,26 +7,32 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+# PENTING: Tambahkan default untuk mencegah kegagalan saat build/collectstatic
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-dummy-key-for-build-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# --- HOSTS & CORS (FIXED FOR NGROK/REACT) ---
+# --- HOSTS & CORS (CLEANED FOR RAILWAY/VERCEL) ---
 if DEBUG:
-    # IZINKAN HOST APAPUN saat development. Ini mengatasi masalah Ngrok Host Header.
+    # Development: Izinkan semua host lokal
     ALLOWED_HOSTS = ['*', '127.0.0.1', 'localhost']
 else:
-    # HANYA HOST YANG DIİZINKAN DI PRODUCTION
-    ALLOWED_HOSTS = ['.render.com', 'unsolitary-joni-spleenish.ngrok-free.dev', ".up.railway.app"]
+    # Production: Hapus Ngrok dan hanya izinkan domain production
+    ALLOWED_HOSTS = [
+        '.up.railway.app',  # Domain Railway
+        '.albuna-hijab.vercel.app', # Domain Vercel Frontend
+        '.render.com', # Jika masih menggunakan Render untuk services lain
+    ]
+    # Wajib untuk Nginx/Proxy SSL di Railway
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Izinkan React dan Ngrok sebagai Origin
+# Izinkan React dan Railway sebagai Origin
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://*.up.railway.app",
     "https://albuna-hijab.vercel.app",
-    "https://unsolitary-joni-spleenish.ngrok-free.dev",
+    "https://*.up.railway.app", # Wildcard untuk Railway
 ]
 # --- END CORS ---
 INSTALLED_APPS = [
@@ -85,22 +91,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'API_albuna.wsgi.application'
 
-# --- DATABASE (DYNAMIC CONFIG) ---
-# 1. Konfigurasi Lokal (Menggunakan .env untuk Supabase Pooler)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT')
-    }
-}
-
-# 2. Logika Production (Render) - Menimpa konfigurasi di atas jika ditemukan
+# --- DATABASE (DYNAMIC CONFIG - BLOK TERKONSOLIDASI) ---
+# Logika ini memastikan DATABASES hanya didefinisikan SATU KALI.
 if os.environ.get('DATABASE_URL'):
-    # Opsi 1: Menggunakan variabel tunggal DATABASE_URL (Railway Production)
+    # Opsi 1: PRODUCTION (Gunakan variabel tunggal DATABASE_URL dari Railway)
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
@@ -109,13 +103,11 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Opsi 2: Fallback ke variabel individual (Local Development/Testing)
-    # Kita harus memberikan nilai default untuk mencegah error UndefinedValueError
-    # jika DB_NAME tidak disetel di .env lokal.
+    # Opsi 2: DEVELOPMENT/LOCAL FALLBACK (Gunakan variabel individual DENGAN SAFE DEFAULTS)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            # Tambahkan default, ini mengatasi UndefinedValueError jika DB_NAME kosong
+            # Tambahkan default untuk mencegah UndefinedValueError
             'NAME': config('DB_NAME', default='postgres_local_db'),
             'USER': config('DB_USER', default='postgres'),
             'PASSWORD': config('DB_PASSWORD', default=''),
@@ -123,38 +115,24 @@ else:
             'PORT': config('DB_PORT', default='5432')
         }
     }
+# --- END DATABASE ---
 
 
 # --- DRF PERMISSIONS FIX ---
 REST_FRAMEWORK = {
-    # Keep your existing permission settings
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     ],
-    # ADD THIS BLOCK: Use token/basic auth and remove session authentication
-    # which is what triggers the default CSRF check for API endpoints.
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # For testing/stateless API: use token auth
-        # 'rest_framework.authentication.TokenAuthentication',
-
-        # OR, keep session only if you need admin UI login, but make sure
-        # to exclude it from views called by React.
-        # A common strategy is to only use Basic or Token for the API:
         'rest_framework.authentication.BasicAuthentication',
     ],
-    # Ensure all views that are NOT meant for the Admin UI do not require CSRF.
-    # This is usually done by using the @api_view decorator which defaults to
-    # using the settings above.
 }
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.ngrok-free.dev', # Wildcard for all ngrok tunnels
-    'https://unsolitary-joni-spleenish.ngrok-free.dev',
     'https://albuna-hijab.vercel.app',
-    # Add your render.com domain if it also posts to the API
+    'https://*.up.railway.app',
 ]
 # --- END DRF FIX ---
 AUTH_PASSWORD_VALIDATORS = [
-    # ... (password validators)
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
