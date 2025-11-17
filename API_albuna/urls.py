@@ -16,8 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse # <-- IMPORT BARU
+
+# Fungsi Healthcheck: Hanya mengembalikan status 'ok'
+def health_check(request):
+    """Fungsi ini digunakan oleh Railway untuk memverifikasi server berjalan."""
+    return JsonResponse({'status': 'ok'}, status=200)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('health/', health_check, name='health_check'),
     path('api/', include('product_catalog.urls')),
 ]
