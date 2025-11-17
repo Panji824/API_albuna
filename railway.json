@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.app/schemas/cli/v2",
+  "build": {
+    "builder": "nixpacks",
+    "buildCommand": "./build.sh"
+  },
+  "deploy": {
+    "startCommand": "gunicorn API_albuna.wsgi --log-file -",
+    "healthcheckPath": "/admin/"
+  }
+}
