@@ -1,1 +1,1 @@
-web: gunicorn API_albuna.wsgi:application
+web: gunicorn API_albuna.wsgi --bind 0.0.0.0:$PORT --log-file -
