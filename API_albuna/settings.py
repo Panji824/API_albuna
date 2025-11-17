@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # PENTING: Tambahkan default untuk mencegah kegagalan saat build/collectstatic
-SECRET_KEY=config('SECRET_KEY')
+SECRET_KEY=config('SECRET_KEY', default='django-insecure-dummy-key-for-build-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
@@ -116,7 +116,7 @@ else:
         }
     }
 # --- END DATABASE ---
-#dddd
+# --- dddd ---
 
 # --- DRF PERMISSIONS FIX ---
 REST_FRAMEWORK = {
