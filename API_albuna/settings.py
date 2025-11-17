@@ -100,6 +100,7 @@ DATABASES = {
 
 # 2. Logika Production (Render) - Menimpa konfigurasi di atas jika ditemukan
 if os.environ.get('DATABASE_URL'):
+    # Opsi 1: Menggunakan variabel tunggal DATABASE_URL (Railway Production)
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
@@ -107,7 +108,21 @@ if os.environ.get('DATABASE_URL'):
             conn_health_check=True,
         )
     }
-# --- END DATABASE ---
+else:
+    # Opsi 2: Fallback ke variabel individual (Local Development/Testing)
+    # Kita harus memberikan nilai default untuk mencegah error UndefinedValueError
+    # jika DB_NAME tidak disetel di .env lokal.
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            # Tambahkan default, ini mengatasi UndefinedValueError jika DB_NAME kosong
+            'NAME': config('DB_NAME', default='postgres_local_db'),
+            'USER': config('DB_USER', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432')
+        }
+    }
 
 
 # --- DRF PERMISSIONS FIX ---
